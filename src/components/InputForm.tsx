@@ -112,9 +112,15 @@ const InputForm: React.FC = () => {
               step="5"
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
-              className={`w-full h-4 rounded-lg appearance-none cursor-pointer mb-8 ${
+              className={`w-full h-8 rounded-lg appearance-none cursor-pointer mb-8 ${
                 duration <= 0 ? 'bg-red-200 accent-red-600' : 'bg-blue-200 accent-blue-600'
               }`}
+              style={{
+                background: duration <= 0 ? '#FEE2E2' : '#BFDBFE',
+                backgroundImage: `linear-gradient(to right, ${duration <= 0 ? '#DC2626' : '#2563EB'} 0%, ${duration <= 0 ? '#DC2626' : '#2563EB'} ${(duration / 240) * 100}%, ${duration <= 0 ? '#FEE2E2' : '#BFDBFE'} ${(duration / 240) * 100}%)`,
+                height: '2rem',
+                borderRadius: '1rem',
+              }}
               title="选择学习时长"
               aria-label="学习时长"
               required
