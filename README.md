@@ -75,6 +75,8 @@ returns setof learning_records as $$
   where search @@ plainto_tsquery('simple', search_query)
   order by ts_rank(search, plainto_tsquery('simple', search_query)) desc;
 $$ language sql stable;
+
+tmp
 ```
 
 ## 步骤 3: 配置 RLS (Row Level Security) 策略
