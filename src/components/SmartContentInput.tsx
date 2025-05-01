@@ -4,29 +4,49 @@ import { LearningSuggestion, RecentLearning } from '../types';
 
 // 预定义的学习主题和关键词
 const predefinedTopics = {
-  'AI基础': [
-    '机器学习基础概念',
-    '深度学习原理',
-    '神经网络架构',
-    '强化学习入门'
+  'Agent基础': [
+    'Agent基本概念',
+    'Agent架构设计',
+    'Agent通信协议',
+    'Agent决策机制',
+    'Agent知识表示'
   ],
-  'AI应用': [
-    'GPT模型应用',
-    'AI助手开发',
-    '图像识别实践',
-    '自然语言处理'
+  'Agent应用': [
+    'Agent助手开发',
+    'Agent对话系统',
+    'Agent任务规划',
+    'Agent协作系统',
+    'Agent自主学习'
   ],
-  'AI工具': [
-    'TensorFlow使用',
-    'PyTorch实践',
-    'Hugging Face工具',
-    'OpenAI API调用'
+  'Agent工具': [
+    'LangChain框架',
+    'AutoGPT工具',
+    'Agent Vector DB',
+    'Agent Prompt模板',
+    'Agent调试工具'
   ],
-  'AI伦理': [
-    'AI伦理准则',
-    'AI安全性',
-    '隐私保护',
-    '偏见处理'
+  'Agent写书': [
+    '大纲规划',
+    '章节撰写',
+    '内容审核',
+    '风格统一',
+    '参考引用',
+    '多轮修改'
+  ],
+  'Agent强化学习': [
+    '环境建模',
+    '奖励机制',
+    '策略优化',
+    '多智能体协作',
+    'Agent探索与利用',
+    '经验回放机制'
+  ],
+  'Agent伦理': [
+    'Agent行为准则',
+    'Agent安全控制',
+    'Agent隐私保护',
+    'Agent偏见消除',
+    'Agent责任边界'
   ]
 };
 
