@@ -14,25 +14,30 @@ const InputForm: React.FC = () => {
 
   // 添加进度条值映射函数
   const mapSliderToTime = (sliderValue: number): number => {
-    // 将0-100的滑块值映射到实际时间
-    if (sliderValue <= 20) {
-      // 前20%的滑动范围映射到10-60分钟
-      return Math.round(10 + (sliderValue / 20) * 50);
-    } else {
-      // 剩余80%的滑动范围映射到60-480分钟
-      return Math.round(60 + ((sliderValue - 20) / 80) * 420);
-    }
+    // 使用指数函数进行非线性映射
+    const normalizedValue = sliderValue / 100;
+    const exponentialValue = Math.pow(normalizedValue, 2);
+    
+    // 映射到10-480分钟范围
+    const minTime = 10;
+    const maxTime = 480;
+    const mappedTime = minTime + (maxTime - minTime) * exponentialValue;
+    
+    // 四舍五入到最接近的5分钟
+    return Math.round(mappedTime / 5) * 5;
   };
 
   // 添加时间映射到滑块值的函数
   const mapTimeToSlider = (timeValue: number): number => {
-    if (timeValue <= 60) {
-      // 10-60分钟映射到0-20的滑块值
-      return Math.round(((timeValue - 10) / 50) * 20);
-    } else {
-      // 60-480分钟映射到20-100的滑块值
-      return Math.round(20 + ((timeValue - 60) / 420) * 80);
-    }
+    // 反向映射
+    const minTime = 10;
+    const maxTime = 480;
+    const normalizedTime = (timeValue - minTime) / (maxTime - minTime);
+    
+    // 使用平方根进行反向映射
+    const sliderValue = Math.sqrt(normalizedTime) * 100;
+    
+    return Math.min(100, Math.max(0, Math.round(sliderValue)));
   };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +143,11 @@ const InputForm: React.FC = () => {
                 <Clock className="h-10 w-10 mr-4 text-blue-600" />
                 学习时间
               </label>
-              <span className={`text-5xl font-bold ${duration <= 0 ? 'text-red-500' : 'text-blue-600'}`}>
+              <span className={`text-5xl font-bold transition-all duration-300 ease-in-out transform ${
+                duration <= 0 
+                  ? 'text-red-500 scale-95' 
+                  : 'text-blue-600 scale-100 hover:scale-105'
+              }`}>
                 {duration}分钟
               </span>
             </div>
@@ -162,10 +171,10 @@ const InputForm: React.FC = () => {
                 borderRadius: '1rem',
                 boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.1)',
                 border: `3px solid ${duration <= 0 ? '#DC2626' : '#2563EB'}`,
-                WebkitTapHighlightColor: 'transparent', // 移除移动端点击高亮
-                WebkitTouchCallout: 'none', // 禁用长按菜单
-                WebkitUserSelect: 'none', // 禁用文本选择
-                userSelect: 'none' // 禁用文本选择
+                WebkitTapHighlightColor: 'transparent',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
               title="选择学习时长"
               aria-label="学习时长"
@@ -178,10 +187,10 @@ const InputForm: React.FC = () => {
                   key={time}
                   type="button"
                   onClick={() => setDuration(time)}
-                  className={`py-4 rounded-xl font-medium transition-colors text-xl ${
+                  className={`py-4 rounded-xl font-medium transition-all duration-300 ease-in-out transform hover:scale-105 text-xl ${
                     duration === time 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700'
+                      ? 'bg-blue-600 text-white shadow-lg scale-105' 
+                      : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 hover:shadow-md'
                   }`}
                 >
                   {time}分钟

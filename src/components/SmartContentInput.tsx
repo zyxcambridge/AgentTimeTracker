@@ -47,6 +47,23 @@ const predefinedTopics = {
     'Agent隐私保护',
     'Agent偏见消除',
     'Agent责任边界'
+  ],
+  'Agent JD': [
+    'Agent岗位需求',
+    'Agent技能要求',
+    'Agent经验要求',
+    'Agent职责范围',
+    'Agent发展路径',
+    'Agent薪资体系'
+  ],
+  'Agent项目': [
+    '项目规划',
+    '需求分析',
+    '架构设计',
+    '开发实现',
+    '测试部署',
+    '运维监控',
+    '迭代优化'
   ]
 };
 
