@@ -15,6 +15,10 @@ export default defineConfig({
       },
       output: {
         manualChunks: undefined,
+        format: 'es',
+        entryFileNames: 'assets/[name].[hash].mjs',
+        chunkFileNames: 'assets/[name].[hash].mjs',
+        assetFileNames: 'assets/[name].[hash][extname]'
       },
     },
   },
