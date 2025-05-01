@@ -8,7 +8,6 @@ const NODE_RADIUS = 60;
 const CHILD_NODE_RADIUS = 40;
 const LEAF_NODE_RADIUS = 25;
 const FONT_SIZE = 12;
-const ANIMATION_DURATION = 800;
 
 const MindMap: React.FC = () => {
   const { mindMapData } = useData();
@@ -101,8 +100,7 @@ const MindMap: React.FC = () => {
               drawConnection(ctx, childX, childY, leafX, leafY, childNode.color || '#64748B', progress);
               
               // 绘制叶节点
-              drawNode(ctx, leafX, leafY, LEAF_NODE_RADIUS, leafNode.label, childNode.color || '#64748B', 
-              progress, true);
+              drawNode(ctx, leafX, leafY, LEAF_NODE_RADIUS, leafNode.label, childNode.color || '#64748B', progress, true);
             });
           }
         });
@@ -203,17 +201,14 @@ const MindMap: React.FC = () => {
   }
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+    <div ref={containerRef} className="w-full h-full bg-white shadow-md rounded-lg overflow-hidden">
       <div className="p-4 border-b">
         <h2 className="text-xl font-semibold text-gray-800 flex items-center">
           <GitBranch className="h-5 w-5 mr-2" />
-          知识思维导图
+          学习思维导图
         </h2>
       </div>
-      
-      <div ref={containerRef} className="p-4">
-        <canvas ref={canvasRef} className="w-full h-[500px]" />
-      </div>
+      <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );
 };
