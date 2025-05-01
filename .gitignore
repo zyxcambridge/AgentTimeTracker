@@ -24,7 +24,6 @@ dist-ssr
 *.sw?
 
 # Supabase
-src/services/supabase.ts
 .env
 .env.local
 .env.development
