@@ -39,7 +39,7 @@ const InputForm: React.FC = () => {
       setContent('');
       setDuration(0); // 重置为未选择状态
       setError('');
-    } catch (error) {
+    } catch (_error) {
       setError('保存失败，请重试');
     }
   };
@@ -112,9 +112,17 @@ const InputForm: React.FC = () => {
               step="5"
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
-              className={`w-full h-4 rounded-lg appearance-none cursor-pointer mb-8 ${
-                duration <= 0 ? 'bg-red-200 accent-red-600' : 'bg-blue-200 accent-blue-600'
+              className={`w-full h-10 rounded-2xl appearance-none cursor-pointer mb-8 ${
+                duration <= 0 ? 'bg-red-200' : 'bg-blue-200'
               }`}
+              style={{
+                background: duration <= 0 ? '#FEE2E2' : '#BFDBFE',
+                backgroundImage: `linear-gradient(to right, ${duration <= 0 ? '#DC2626' : '#2563EB'} 0%, ${duration <= 0 ? '#DC2626' : '#2563EB'} ${(duration / 240) * 100}%, ${duration <= 0 ? '#FEE2E2' : '#BFDBFE'} ${(duration / 240) * 100}%)`,
+                height: '2.5rem',
+                borderRadius: '1rem',
+                boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+                border: `2px solid ${duration <= 0 ? '#DC2626' : '#2563EB'}`
+              }}
               title="选择学习时长"
               aria-label="学习时长"
               required
