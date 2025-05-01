@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Clock, Book, Calendar } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { getTodayDateString } from '../utils/helpers';
+import SmartContentInput from './SmartContentInput';
 
 const InputForm: React.FC = () => {
   const { addEntry, statistics } = useData();
   const [date, setDate] = useState<string>(getTodayDateString());
   const [duration, setDuration] = useState<number>(0);
   const [content, setContent] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
   const [error, setError] = useState<string>('');
 
   // 添加进度条值映射函数
@@ -68,15 +70,12 @@ const InputForm: React.FC = () => {
     }
     
     try {
-      // 使用当前时间作为记录时间
       const now = new Date();
       const dateTime = now.toISOString();
-      // 自动生成标签和难度
-      const tags = content.split(/[,，。；;]/).map(tag => tag.trim()).filter(Boolean);
-      const complexity = Math.min(Math.ceil(content.length / 100), 5); // 根据内容长度自动计算难度，最高5
-      await addEntry(dateTime, duration, content, tags, complexity);
+      await addEntry(dateTime, duration, content, tags);
       setContent('');
-      setDuration(0); // 重置为未选择状态
+      setDuration(0);
+      setTags([]);
       setError('');
     } catch {
       setError('保存失败，请重试');
@@ -191,19 +190,17 @@ const InputForm: React.FC = () => {
             </div>
           </div>
           
-          {/* 超大型内容输入区域 */}
+          {/* 使用新的智能内容输入组件 */}
           <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-blue-100">
             <label className="block text-3xl font-bold text-gray-800 mb-8 flex items-center">
               <Book className="h-10 w-10 mr-4 text-blue-600" />
               学习内容
             </label>
-            <textarea
+            <SmartContentInput
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="今天学习了什么？&#13;&#10;例如：GPT-4的提示工程、机器学习基础原理...&#13;&#10;注：使用逗号、句号或分号分隔的内容会自动生成为标签"
-              rows={5}
-              className="w-full px-6 py-4 text-2xl border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              required
+              onChange={setContent}
+              onTagsChange={setTags}
+              recentLearning={[]}  // 这里可以传入最近的学习记录
             />
           </div>
 

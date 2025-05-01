@@ -14,16 +14,40 @@ export interface Category {
   color: string;
 }
 
-export interface MindMapNode {
+export interface LearningTopic {
   id: string;
-  label: string;
-  value: number;
-  color?: string;
-  children?: MindMapNode[];
+  name: string;
+  category: string;
+  subtopics: string[];
+  keywords: string[];
+}
+
+export interface LearningSuggestion {
+  topic: string;
+  content: string;
+  category: string;
+  estimatedDuration: number;
+  difficulty: number;
+  prerequisites?: string[];
+}
+
+export interface RecentLearning {
+  content: string;
+  frequency: number;
+  lastUsed: string;
+  category: string;
 }
 
 export interface TimeStatistics {
   totalTime: number;
   timeByCategory: {[category: string]: number};
   timeByDay: {[date: string]: number};
+}
+
+export interface MindMapNode {
+  id: string;
+  label: string;
+  value: number;
+  color?: string;
+  children?: MindMapNode[];
 }
