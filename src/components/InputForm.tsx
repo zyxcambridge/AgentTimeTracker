@@ -39,12 +39,12 @@ const InputForm: React.FC = () => {
       setContent('');
       setDuration(0); // 重置为未选择状态
       setError('');
-    } catch (_error) {
+    } catch {
       setError('保存失败，请重试');
     }
   };
 
-  const quickTimeButtons = [30, 60, 90, 120, 180, 240];
+  const quickTimeButtons = [30, 60, 120, 180, 240, 360, 480];
 
   // 将分钟转换为小时和分钟
   const formatTotalTime = (minutes: number) => {
@@ -107,9 +107,9 @@ const InputForm: React.FC = () => {
             
             <input
               type="range"
-              min="5"
-              max="240"
-              step="5"
+              min="10"
+              max="480"
+              step="10"
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               className={`w-full h-10 rounded-2xl appearance-none cursor-pointer mb-8 ${
@@ -117,11 +117,11 @@ const InputForm: React.FC = () => {
               }`}
               style={{
                 background: duration <= 0 ? '#FEE2E2' : '#BFDBFE',
-                backgroundImage: `linear-gradient(to right, ${duration <= 0 ? '#DC2626' : '#2563EB'} 0%, ${duration <= 0 ? '#DC2626' : '#2563EB'} ${(duration / 240) * 100}%, ${duration <= 0 ? '#FEE2E2' : '#BFDBFE'} ${(duration / 240) * 100}%)`,
+                backgroundImage: `linear-gradient(to right, ${duration <= 0 ? '#DC2626' : '#2563EB'} 0%, ${duration <= 0 ? '#DC2626' : '#2563EB'} ${(duration / 480) * 100}%, ${duration <= 0 ? '#FEE2E2' : '#BFDBFE'} ${(duration / 480) * 100}%)`,
                 height: '2.5rem',
                 borderRadius: '1rem',
                 boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-                border: `2px solid ${duration <= 0 ? '#DC2626' : '#2563EB'}`
+                border: `3px solid ${duration <= 0 ? '#DC2626' : '#2563EB'}`
               }}
               title="选择学习时长"
               aria-label="学习时长"
