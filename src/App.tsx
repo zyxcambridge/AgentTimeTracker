@@ -1,12 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DataProvider } from './contexts/DataContext';
 import Header from './components/Header';
 import InputForm from './components/InputForm';
 import TimeStatistics from './components/TimeStatistics';
 import LearningList from './components/LearningList';
 import MindMap from './components/MindMap';
+import { testConnection } from './utils/supabase-test';
 
 function App() {
+  useEffect(() => {
+    // 测试 Supabase 连接
+    testConnection().then(isConnected => {
+      if (isConnected) {
+        console.log('✅ Supabase 配置正确');
+      } else {
+        console.error('❌ Supabase 配置错误，请检查环境变量');
+      }
+    });
+  }, []);
+
   return (
     <DataProvider>
       <div className="min-h-screen bg-gray-50 flex flex-col">

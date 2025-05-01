@@ -4,6 +4,8 @@ export interface LearningEntry {
   duration: number; // 以分钟为单位
   content: string;
   category: string;
+  tags?: string[];
+  complexity?: number;
 }
 
 export interface Category {
