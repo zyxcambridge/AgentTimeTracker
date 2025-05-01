@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import { Clock, Book, Calendar, Tags, BarChart, X, Clock3 } from 'lucide-react';
+import { Clock, Book, Calendar } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { getTodayDateString } from '../utils/helpers';
 
 const InputForm: React.FC = () => {
-  const { addEntry } = useData();
+  const { addEntry, statistics } = useData();
   const [date, setDate] = useState<string>(getTodayDateString());
-  const [time, setTime] = useState<string>('');
-  const [duration, setDuration] = useState<number>(60);
+  const [duration, setDuration] = useState<number>(0); // 初始值设为0，表示未选择
   const [content, setContent] = useState<string>('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState<string>('');
-  const [complexity, setComplexity] = useState<number>(1);
-  const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,14 +17,9 @@ const InputForm: React.FC = () => {
       setError('请选择日期');
       return;
     }
-
-    if (!time) {
-      setError('请选择时间');
-      return;
-    }
     
     if (duration <= 0) {
-      setError('请输入有效的学习时间');
+      setError('请选择学习时间');
       return;
     }
     
@@ -39,88 +29,80 @@ const InputForm: React.FC = () => {
     }
     
     try {
-      // 将日期和时间组合
-      const dateTime = `${date}T${time}:00`;
+      // 使用当前时间作为记录时间
+      const now = new Date();
+      const dateTime = now.toISOString();
+      // 自动生成标签和难度
+      const tags = content.split(/[,，。；;]/).map(tag => tag.trim()).filter(Boolean);
+      const complexity = Math.min(Math.ceil(content.length / 100), 5); // 根据内容长度自动计算难度，最高5
       await addEntry(dateTime, duration, content, tags, complexity);
       setContent('');
-      setDuration(60);
-      setTags([]);
-      setTagInput('');
-      setComplexity(1);
+      setDuration(0); // 重置为未选择状态
       setError('');
     } catch (error) {
       setError('保存失败，请重试');
     }
   };
 
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && tagInput.trim()) {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()]);
-      }
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-    if (!isExpanded) {
-      setError('');
-    }
-  };
-
   const quickTimeButtons = [30, 60, 90, 120, 180, 240];
+
+  // 将分钟转换为小时和分钟
+  const formatTotalTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return {
+      hours,
+      minutes: mins
+    };
+  };
+
+  const totalTime = formatTotalTime(statistics.totalTime);
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 shadow-xl rounded-2xl overflow-hidden transition-all duration-300">
+      {/* 总学习时间显示 */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 md:p-12 flex flex-col items-center justify-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">总学习时间</h2>
+        <div className="flex items-baseline space-x-2">
+          <span className="text-5xl md:text-7xl font-bold text-white">
+            {totalTime.hours}
+          </span>
+          <span className="text-2xl md:text-3xl font-medium text-blue-100">小时</span>
+          <span className="text-5xl md:text-7xl font-bold text-white ml-2">
+            {totalTime.minutes}
+          </span>
+          <span className="text-2xl md:text-3xl font-medium text-blue-100">分钟</span>
+        </div>
+      </div>
+
       <div className="p-8 md:p-12">
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* 日期和时间选择器 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 日期选择器 */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-100">
-              <label className="block text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Calendar className="h-6 w-6 mr-2 text-blue-600" />
-                日期
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-lg"
-                required
-              />
-            </div>
-
-            {/* 时间选择器 */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-100">
-              <label className="block text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Clock3 className="h-6 w-6 mr-2 text-blue-600" />
-                时间
-              </label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-lg"
-                required
-              />
-            </div>
+          {/* 日期选择器 */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-100">
+            <label className="block text-xl font-bold text-gray-800 mb-4 flex items-center">
+              <Calendar className="h-6 w-6 mr-2 text-blue-600" />
+              日期
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 text-lg"
+              required
+              title="选择日期"
+            />
           </div>
 
           {/* 超大型时间输入区域 */}
-          <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-blue-100">
+          <div className={`bg-white p-8 md:p-10 rounded-2xl shadow-sm border ${duration <= 0 ? 'border-red-300' : 'border-blue-100'}`}>
             <div className="flex items-center justify-between mb-8">
               <label className="text-3xl font-bold text-gray-800 flex items-center">
                 <Clock className="h-10 w-10 mr-4 text-blue-600" />
                 学习时间
               </label>
-              <span className="text-5xl font-bold text-blue-600">{duration}分钟</span>
+              <span className={`text-5xl font-bold ${duration <= 0 ? 'text-red-500' : 'text-blue-600'}`}>
+                {duration}分钟
+              </span>
             </div>
             
             <input
@@ -130,9 +112,12 @@ const InputForm: React.FC = () => {
               step="5"
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
-              className="w-full h-4 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mb-8"
-              title="学习时长"
+              className={`w-full h-4 rounded-lg appearance-none cursor-pointer mb-8 ${
+                duration <= 0 ? 'bg-red-200 accent-red-600' : 'bg-blue-200 accent-blue-600'
+              }`}
+              title="选择学习时长"
               aria-label="学习时长"
+              required
             />
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -141,7 +126,11 @@ const InputForm: React.FC = () => {
                   key={time}
                   type="button"
                   onClick={() => setDuration(time)}
-                  className="py-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl text-blue-700 font-medium transition-colors text-xl"
+                  className={`py-4 rounded-xl font-medium transition-colors text-xl ${
+                    duration === time 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700'
+                  }`}
                 >
                   {time}分钟
                 </button>
@@ -158,80 +147,27 @@ const InputForm: React.FC = () => {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="今天学习了什么？&#13;&#10;例如：GPT-4的提示工程、机器学习基础原理..."
+              placeholder="今天学习了什么？&#13;&#10;例如：GPT-4的提示工程、机器学习基础原理...&#13;&#10;注：使用逗号、句号或分号分隔的内容会自动生成为标签"
               rows={5}
               className="w-full px-6 py-4 text-2xl border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               required
             />
           </div>
 
-          {/* 标签输入区域 */}
-          <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-blue-100">
-            <label className="block text-3xl font-bold text-gray-800 mb-8 flex items-center">
-              <Tags className="h-10 w-10 mr-4 text-blue-600" />
-              标签
-            </label>
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleAddTag}
-                placeholder="输入标签并按回车添加"
-                className="w-full px-6 py-4 text-xl border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-lg"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ml-2 text-blue-600 hover:text-blue-800"
-                      title={`删除标签 ${tag}`}
-                      aria-label={`删除标签 ${tag}`}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 复杂度选择器 */}
-          <div className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-blue-100">
-            <label className="block text-3xl font-bold text-gray-800 mb-8 flex items-center">
-              <BarChart className="h-10 w-10 mr-4 text-blue-600" />
-              复杂度
-            </label>
-            <div className="flex items-center space-x-4">
-              <input
-                type="range"
-                min="1"
-                max="5"
-                value={complexity}
-                onChange={(e) => setComplexity(Number(e.target.value))}
-                className="flex-1 h-4 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                title="学习内容复杂度"
-                aria-label="学习内容复杂度"
-              />
-              <span className="text-2xl font-bold text-blue-600">{complexity}</span>
-            </div>
-          </div>
-          
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl text-lg">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
               {error}
             </div>
           )}
-          
+
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 px-8 rounded-xl transition-colors duration-300 text-2xl shadow-lg"
+            className={`w-full py-6 rounded-xl text-2xl font-bold transition-colors ${
+              duration <= 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+            disabled={duration <= 0}
           >
             保存学习记录
           </button>
