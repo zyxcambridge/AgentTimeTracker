@@ -6,9 +6,38 @@ import { getTodayDateString } from '../utils/helpers';
 const InputForm: React.FC = () => {
   const { addEntry, statistics } = useData();
   const [date, setDate] = useState<string>(getTodayDateString());
-  const [duration, setDuration] = useState<number>(0); // 初始值设为0，表示未选择
+  const [duration, setDuration] = useState<number>(0);
   const [content, setContent] = useState<string>('');
   const [error, setError] = useState<string>('');
+
+  // 添加进度条值映射函数
+  const mapSliderToTime = (sliderValue: number): number => {
+    // 将0-100的滑块值映射到实际时间
+    if (sliderValue <= 20) {
+      // 前20%的滑动范围映射到10-60分钟
+      return Math.round(10 + (sliderValue / 20) * 50);
+    } else {
+      // 剩余80%的滑动范围映射到60-480分钟
+      return Math.round(60 + ((sliderValue - 20) / 80) * 420);
+    }
+  };
+
+  // 添加时间映射到滑块值的函数
+  const mapTimeToSlider = (timeValue: number): number => {
+    if (timeValue <= 60) {
+      // 10-60分钟映射到0-20的滑块值
+      return Math.round(((timeValue - 10) / 50) * 20);
+    } else {
+      // 60-480分钟映射到20-100的滑块值
+      return Math.round(20 + ((timeValue - 60) / 420) * 80);
+    }
+  };
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sliderValue = Number(e.target.value);
+    const mappedTime = mapSliderToTime(sliderValue);
+    setDuration(mappedTime);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,17 +136,17 @@ const InputForm: React.FC = () => {
             
             <input
               type="range"
-              min="10"
-              max="480"
-              step="10"
-              value={duration}
-              onChange={(e) => setDuration(Number(e.target.value))}
+              min="0"
+              max="100"
+              step="1"
+              value={mapTimeToSlider(duration)}
+              onChange={handleSliderChange}
               className={`w-full h-10 rounded-2xl appearance-none cursor-pointer mb-8 ${
                 duration <= 0 ? 'bg-red-200' : 'bg-blue-200'
               }`}
               style={{
                 background: duration <= 0 ? '#FEE2E2' : '#BFDBFE',
-                backgroundImage: `linear-gradient(to right, ${duration <= 0 ? '#DC2626' : '#2563EB'} 0%, ${duration <= 0 ? '#DC2626' : '#2563EB'} ${(duration / 480) * 100}%, ${duration <= 0 ? '#FEE2E2' : '#BFDBFE'} ${(duration / 480) * 100}%)`,
+                backgroundImage: `linear-gradient(to right, ${duration <= 0 ? '#DC2626' : '#2563EB'} 0%, ${duration <= 0 ? '#DC2626' : '#2563EB'} ${mapTimeToSlider(duration)}%, ${duration <= 0 ? '#FEE2E2' : '#BFDBFE'} ${mapTimeToSlider(duration)}%)`,
                 height: '2.5rem',
                 borderRadius: '1rem',
                 boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.1)',
