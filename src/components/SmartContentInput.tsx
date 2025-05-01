@@ -41,12 +41,14 @@ const predefinedTopics = {
     'Agent探索与利用',
     '经验回放机制'
   ],
-  'Agent伦理': [
-    'Agent行为准则',
-    'Agent安全控制',
-    'Agent隐私保护',
-    'Agent偏见消除',
-    'Agent责任边界'
+  'Agent论文': [
+    '论文选题',
+    '文献综述',
+    '方法创新',
+    '实验设计',
+    '结果分析',
+    '论文写作',
+    '投稿修改'
   ],
   'Agent JD': [
     'Agent岗位需求',
