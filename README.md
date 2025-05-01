@@ -1,3 +1,22 @@
+# Agent Time Tracker
+
+一个简单而强大的学习时间追踪工具。
+
+## 特性
+
+- 📝 记录学习内容和时间
+- ⏱️ 灵活的时间选择
+- 🏷️ 自动标签生成
+- 📊 学习数据统计
+- 🌐 在线同步（Supabase）
+- 📱 响应式设计
+
+## 在线访问
+
+访问地址：[Agent Time Tracker](https://zyxcambridge.github.io/AgentTimeTracker/)
+
+![部署状态](https://github.com/zyxcambridge/AgentTimeTracker/actions/workflows/deploy.yml/badge.svg)
+
 # Agent 学习时间追踪系统配置指南
 
 这是一个用于追踪和记录学习时间的应用程序，使用 Supabase 作为后端数据存储。
