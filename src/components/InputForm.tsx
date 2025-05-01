@@ -39,6 +39,16 @@ const InputForm: React.FC = () => {
     setDuration(mappedTime);
   };
 
+  // 添加触摸事件处理器
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    e.preventDefault(); // 阻止默认的滚动行为
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -141,7 +151,9 @@ const InputForm: React.FC = () => {
               step="1"
               value={mapTimeToSlider(duration)}
               onChange={handleSliderChange}
-              className={`w-full h-10 rounded-2xl appearance-none cursor-pointer mb-8 ${
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              className={`w-full h-10 rounded-2xl appearance-none cursor-pointer mb-8 touch-none ${
                 duration <= 0 ? 'bg-red-200' : 'bg-blue-200'
               }`}
               style={{
@@ -150,7 +162,11 @@ const InputForm: React.FC = () => {
                 height: '2.5rem',
                 borderRadius: '1rem',
                 boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.1)',
-                border: `3px solid ${duration <= 0 ? '#DC2626' : '#2563EB'}`
+                border: `3px solid ${duration <= 0 ? '#DC2626' : '#2563EB'}`,
+                WebkitTapHighlightColor: 'transparent', // 移除移动端点击高亮
+                WebkitTouchCallout: 'none', // 禁用长按菜单
+                WebkitUserSelect: 'none', // 禁用文本选择
+                userSelect: 'none' // 禁用文本选择
               }}
               title="选择学习时长"
               aria-label="学习时长"
