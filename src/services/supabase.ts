@@ -17,6 +17,28 @@ export interface LearningRecord {
 }
 
 export const saveLearningRecord = async (record: Omit<LearningRecord, 'id' | 'created_at'>) => {
+  // 先检查最近5秒内是否有相同的记录
+  const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+  
+  const { data: existingRecords, error: checkError } = await supabase
+    .from('learning_records')
+    .select('*')
+    .eq('description', record.description)
+    .eq('duration', record.duration)
+    .gt('created_at', fiveSecondsAgo)
+    .order('created_at', { ascending: false });
+
+  if (checkError) {
+    throw checkError;
+  }
+
+  // 如果找到重复记录，返回已存在的记录
+  if (existingRecords && existingRecords.length > 0) {
+    console.log('Found duplicate record, skipping insert');
+    return existingRecords;
+  }
+
+  // 如果没有重复记录，则插入新记录
   const { data, error } = await supabase
     .from('learning_records')
     .insert([record])

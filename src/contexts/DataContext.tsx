@@ -14,6 +14,7 @@ import {
   generateId 
 } from '../utils/helpers';
 import { saveLearningRecord, getLearningRecords, LearningRecord } from '../services/supabase';
+import { supabase } from '../services/supabase';
 
 interface DataContextType {
   entries: LearningEntry[];
@@ -44,7 +45,41 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   });
   // 添加防重复提交的状态
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
+
+  // 检查是否是重复提交
+  const checkDuplicate = (content: string, duration: number) => {
+    try {
+      const lastSubmission = localStorage.getItem('lastSubmission');
+      if (lastSubmission) {
+        const { content: lastContent, duration: lastDuration, timestamp } = JSON.parse(lastSubmission);
+        const now = Date.now();
+        
+        // 如果5秒内有相同内容和时长的提交，认为是重复提交
+        if (lastContent === content && 
+            lastDuration === duration && 
+            now - timestamp < 5000) {
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking duplicate:', error);
+      return false;
+    }
+  };
+
+  // 记录最后一次提交
+  const recordSubmission = (content: string, duration: number) => {
+    try {
+      localStorage.setItem('lastSubmission', JSON.stringify({
+        content,
+        duration,
+        timestamp: Date.now()
+      }));
+    } catch (error) {
+      console.error('Error recording submission:', error);
+    }
+  };
 
   // 初始化数据
   useEffect(() => {
@@ -63,71 +98,54 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   }, [entries, categories]);
 
-  // 从本地存储和 Supabase 加载数据
+  // 从 Supabase 加载数据
   const loadData = async () => {
+    const storedCategories = getCategories();
+    setCategories(storedCategories);
+    
     try {
-      // 优先从 Supabase 加载数据
       const supabaseRecords = await getLearningRecords();
-      const supabaseEntries = supabaseRecords.map(record => ({
+      const entries = supabaseRecords.map(record => ({
         id: record.id?.toString() || generateId(),
         date: new Date(record.created_at || '').toISOString(),
         duration: record.duration,
         content: record.description,
-        category: categorizeContent(record.description, categories),
+        category: categorizeContent(record.description, storedCategories),
         tags: record.tags,
         complexity: record.complexity
       }));
 
-      // 使用 Supabase 数据更新本地存储
-      setEntries(supabaseEntries);
-      saveEntries(supabaseEntries);
+      // 只使用 Supabase 的数据
+      setEntries(entries);
+      // 不再保存到本地存储
+      // saveEntries(entries);
     } catch (error) {
       console.error('Failed to load data from Supabase:', error);
-      // 如果 Supabase 加载失败，使用本地存储的数据
-      const storedEntries = getEntries();
-      setEntries(storedEntries);
+      setEntries([]);
     }
-    
-    const storedCategories = getCategories();
-    setCategories(storedCategories);
   };
 
   // 添加新条目
   const addEntry = async (date: string, duration: number, content: string, tags: string[] = [], complexity: number = 1) => {
-    // 防重复提交检查
-    const now = Date.now();
     if (isSubmitting) {
       console.log('请勿重复提交');
       return;
     }
-    
-    // 检查是否在短时间内重复提交（3秒内）
-    if (now - lastSubmitTime < 3000) {
-      console.log('提交过于频繁，请稍后再试');
+
+    // 检查是否是重复提交
+    if (checkDuplicate(content, duration)) {
+      console.log('检测到重复提交，已忽略');
       return;
     }
 
     setIsSubmitting(true);
-    setLastSubmitTime(now);
-
     const categoryId = categorizeContent(content, categories);
     
     try {
-      // 检查最近的记录是否重复
-      const recentEntries = entries.slice(-5);
-      const isDuplicate = recentEntries.some(entry => 
-        entry.content === content &&
-        entry.duration === duration &&
-        Date.now() - new Date(entry.date).getTime() < 5000 // 5秒内的记录
-      );
+      // 记录本次提交
+      recordSubmission(content, duration);
 
-      if (isDuplicate) {
-        console.log('检测到重复记录，已忽略');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 先保存到 Supabase，获取服务器生成的 ID
+      // 保存到 Supabase
       const savedRecord = await saveLearningRecord({
         topic: content,
         duration,
@@ -136,13 +154,13 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         complexity
       });
 
-      if (!savedRecord || !savedRecord.id) {
+      if (!savedRecord || !savedRecord[0]?.id) {
         throw new Error('Failed to get ID from Supabase');
       }
 
-      // 使用 Supabase 返回的 ID 创建新条目
+      // 使用 Supabase 返回的记录创建新条目
       const newEntry: LearningEntry = {
-        id: savedRecord.id.toString(),
+        id: savedRecord[0].id.toString(),
         date,
         duration,
         content,
@@ -151,45 +169,63 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         complexity
       };
 
-      // 保存到本地
-      const updatedEntries = [...entries, newEntry];
-      setEntries(updatedEntries);
-      saveEntries(updatedEntries);
+      // 只更新状态，不保存到本地存储
+      setEntries(prevEntries => [...prevEntries, newEntry]);
     } catch (error) {
       console.error('Failed to save entry:', error);
-      // 如果 Supabase 保存失败，使用本地生成的 ID
-      const newEntry: LearningEntry = {
-        id: generateId(),
-        date,
-        duration,
-        content,
-        category: categoryId,
-        tags,
-        complexity
-      };
-      
-      const updatedEntries = [...entries, newEntry];
-      setEntries(updatedEntries);
-      saveEntries(updatedEntries);
+      // 如果保存失败，显示错误提示
+      alert('保存失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // 删除条目
-  const deleteEntry = (id: string) => {
-    const updatedEntries = entries.filter(entry => entry.id !== id);
-    setEntries(updatedEntries);
-    saveEntries(updatedEntries);
+  const deleteEntry = async (id: string) => {
+    try {
+      // 从 Supabase 删除
+      const { error } = await supabase
+        .from('learning_records')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // 更新状态
+      setEntries(prevEntries => prevEntries.filter(entry => entry.id !== id));
+    } catch (error) {
+      console.error('Failed to delete entry:', error);
+      alert('删除失败，请重试');
+    }
   };
 
   // 更新条目
-  const updateEntry = (updatedEntry: LearningEntry) => {
-    const updatedEntries = entries.map(entry =>
-      entry.id === updatedEntry.id ? updatedEntry : entry
-    );
-    setEntries(updatedEntries);
-    saveEntries(updatedEntries);
+  const updateEntry = async (updatedEntry: LearningEntry) => {
+    try {
+      // 更新 Supabase
+      const { error } = await supabase
+        .from('learning_records')
+        .update({
+          topic: updatedEntry.content,
+          duration: updatedEntry.duration,
+          description: updatedEntry.content,
+          tags: updatedEntry.tags,
+          complexity: updatedEntry.complexity
+        })
+        .eq('id', updatedEntry.id);
+
+      if (error) throw error;
+
+      // 更新状态
+      setEntries(prevEntries => 
+        prevEntries.map(entry =>
+          entry.id === updatedEntry.id ? updatedEntry : entry
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update entry:', error);
+      alert('更新失败，请重试');
+    }
   };
 
   // 添加新分类
