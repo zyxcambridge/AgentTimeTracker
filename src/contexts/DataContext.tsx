@@ -62,27 +62,30 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // 从本地存储和 Supabase 加载数据
   const loadData = async () => {
-    const storedEntries = getEntries();
-    const storedCategories = getCategories();
-    
     try {
+      // 优先从 Supabase 加载数据
       const supabaseRecords = await getLearningRecords();
       const supabaseEntries = supabaseRecords.map(record => ({
         id: record.id?.toString() || generateId(),
         date: new Date(record.created_at || '').toISOString(),
         duration: record.duration,
         content: record.description,
-        category: categorizeContent(record.description, storedCategories),
+        category: categorizeContent(record.description, categories),
         tags: record.tags,
         complexity: record.complexity
       }));
 
-      setEntries([...storedEntries, ...supabaseEntries]);
+      // 使用 Supabase 数据更新本地存储
+      setEntries(supabaseEntries);
+      saveEntries(supabaseEntries);
     } catch (error) {
       console.error('Failed to load data from Supabase:', error);
+      // 如果 Supabase 加载失败，使用本地存储的数据
+      const storedEntries = getEntries();
       setEntries(storedEntries);
     }
     
+    const storedCategories = getCategories();
     setCategories(storedCategories);
   };
 
@@ -90,19 +93,9 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const addEntry = async (date: string, duration: number, content: string, tags: string[] = [], complexity: number = 1) => {
     const categoryId = categorizeContent(content, categories);
     
-    const newEntry: LearningEntry = {
-      id: generateId(),
-      date,
-      duration,
-      content,
-      category: categoryId,
-      tags,
-      complexity
-    };
-    
     try {
-      // 保存到 Supabase
-      await saveLearningRecord({
+      // 先保存到 Supabase，获取服务器生成的 ID
+      const savedRecord = await saveLearningRecord({
         topic: content,
         duration,
         description: content,
@@ -110,13 +103,38 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         complexity
       });
 
+      if (!savedRecord || !savedRecord.id) {
+        throw new Error('Failed to get ID from Supabase');
+      }
+
+      // 使用 Supabase 返回的 ID 创建新条目
+      const newEntry: LearningEntry = {
+        id: savedRecord.id.toString(),
+        date,
+        duration,
+        content,
+        category: categoryId,
+        tags,
+        complexity
+      };
+
       // 保存到本地
       const updatedEntries = [...entries, newEntry];
       setEntries(updatedEntries);
       saveEntries(updatedEntries);
     } catch (error) {
-      console.error('Failed to save entry to Supabase:', error);
-      // 即使 Supabase 保存失败，仍然保存到本地
+      console.error('Failed to save entry:', error);
+      // 如果 Supabase 保存失败，使用本地生成的 ID
+      const newEntry: LearningEntry = {
+        id: generateId(),
+        date,
+        duration,
+        content,
+        category: categoryId,
+        tags,
+        complexity
+      };
+      
       const updatedEntries = [...entries, newEntry];
       setEntries(updatedEntries);
       saveEntries(updatedEntries);
