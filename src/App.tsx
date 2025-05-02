@@ -5,6 +5,7 @@ import InputForm from './components/InputForm';
 import TimeStatistics from './components/TimeStatistics';
 import LearningList from './components/LearningList';
 import MindMap from './components/MindMap';
+import FeatureTips from './components/FeatureTips';
 import { testConnection } from './utils/supabase-test';
 
 function App() {
@@ -30,10 +31,11 @@ function App() {
             <InputForm />
           </div>
           
-          {/* 辅助信息区域 - 使用较小的尺寸 */}
+          {/* 辅助信息区域 */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-4">
               <TimeStatistics />
+              <FeatureTips />
             </div>
             <div className="lg:col-span-2 space-y-4">
               <div className="h-[300px]">
