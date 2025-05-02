@@ -42,6 +42,9 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     value: 0,
     children: []
   });
+  // 添加防重复提交的状态
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
 
   // 初始化数据
   useEffect(() => {
@@ -91,9 +94,39 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   // 添加新条目
   const addEntry = async (date: string, duration: number, content: string, tags: string[] = [], complexity: number = 1) => {
+    // 防重复提交检查
+    const now = Date.now();
+    if (isSubmitting) {
+      console.log('请勿重复提交');
+      return;
+    }
+    
+    // 检查是否在短时间内重复提交（3秒内）
+    if (now - lastSubmitTime < 3000) {
+      console.log('提交过于频繁，请稍后再试');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setLastSubmitTime(now);
+
     const categoryId = categorizeContent(content, categories);
     
     try {
+      // 检查最近的记录是否重复
+      const recentEntries = entries.slice(-5);
+      const isDuplicate = recentEntries.some(entry => 
+        entry.content === content &&
+        entry.duration === duration &&
+        Date.now() - new Date(entry.date).getTime() < 5000 // 5秒内的记录
+      );
+
+      if (isDuplicate) {
+        console.log('检测到重复记录，已忽略');
+        setIsSubmitting(false);
+        return;
+      }
+
       // 先保存到 Supabase，获取服务器生成的 ID
       const savedRecord = await saveLearningRecord({
         topic: content,
@@ -138,6 +171,8 @@ export const DataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       const updatedEntries = [...entries, newEntry];
       setEntries(updatedEntries);
       saveEntries(updatedEntries);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
